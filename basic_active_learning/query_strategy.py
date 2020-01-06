@@ -21,7 +21,6 @@ class EntropySelectQuery(object):
     def __init__(self, model, dataset):
         self.model = model
         self.dataset = dataset
-
         self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     def __call__(self, unlabeled, n_rec, batch_size=512):
