@@ -1,6 +1,7 @@
 '''
 query strategy 
 '''
+import torch
 from torch.utils.data import DataLoader
 import torch.utils.data.sampler as sampler
 
@@ -10,7 +11,7 @@ class SubsetSampler(sampler.Sampler):
         self.indices = indices
     
     def __iter__(self):
-        return self.indices
+        return (i for i in self.indices)
 
     def __len__(self):
         return len(self.indices)
@@ -21,8 +22,7 @@ class EntropySelectQuery(object):
         self.model = model
         self.dataset = dataset
 
-        self.device = 'cuda:0' if torch.cuda.is_available()
-            else 'cpu'
+        self.device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
     def __call__(self, unlabeled, n_rec, batch_size=512):
         # infer on the unlabeled set
@@ -37,7 +37,7 @@ class EntropySelectQuery(object):
                 infered.append(self.model(imgs))
         
         # stack output into one tensor of shape len(unlabeled) x num_classes
-        infered = torch.stack(infered)
+        infered = torch.cat(infered, dim=0)
 
         # compute entropy
         entropy = self._entropy(infered)
@@ -58,4 +58,14 @@ class EntropySelectQuery(object):
         selected.sort(key=lambda x : -x[1])
 
         return [x[0] for x in selected[:n_rec]]
-        
+
+def test():
+    from model import AlexNet
+    ent = EntropySelectQuery(AlexNet(), None)
+    indices = [i for i in range(1000)]
+    tls = torch.rand(1000, 10)
+
+    x = ent._entropy(tls)
+    sl = ent._select(indices, x, 10)
+    print(sl)
+
