@@ -59,13 +59,4 @@ class EntropySelectQuery(object):
 
         return [x[0] for x in selected[:n_rec]]
 
-def test():
-    from model import AlexNet
-    ent = EntropySelectQuery(AlexNet(), None)
-    indices = [i for i in range(1000)]
-    tls = torch.rand(1000, 10)
-
-    x = ent._entropy(tls)
-    sl = ent._select(indices, x, 10)
-    print(sl)
 
